@@ -1,9 +1,9 @@
 import { DLHD_BASE } from "../config.js";
 import { PLAYERS } from "../players/types.js";
 
-const SITE_TITLE = "DaddyLive (DLHD) Stream Resolver";
+const SITE_TITLE = "DLHD Stream Resolver";
 const SITE_DESC =
-  "Resolve DLHD streams to direct URLs, proxy with embed referer, play in-browser, and copy VLC or MPV commands.";
+  "Resolve DaddyLive (DLHD) streams to direct URLs, proxy with embed referer, play in-browser, and copy VLC or MPV commands.";
 
 function esc(value: string): string {
   return value

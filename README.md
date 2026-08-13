@@ -1,4 +1,4 @@
-# DaddyLive Stream Resolver
+# DLHD Stream Resolver
 
 Resolve [DaddyLive (DLHD)](https://dlhd.st) player pages into direct stream URLs, proxy them with the correct embed referer, play in the browser, and copy **VLC** or **MPV** commands.
 
@@ -58,8 +58,8 @@ The resolver never calls `fetch`. You can test it offline against saved HTML in 
 ### Run locally
 
 ```bash
-git clone <repo-url> daddy-live
-cd daddy-live
+git clone https://github.com/sharoon7171/dlhd-stream-resolver.git
+cd dlhd-stream-resolver
 npm install
 npm start
 ```
@@ -241,7 +241,7 @@ import {
   fetchChannelList,         // scraper (live fetch, 5 min cache)
   PLAYER_IDS,
   buildProxyUrl,
-} from "daddy-live-resolver";
+} from "dlhd-stream-resolver";
 ```
 
 ### `ResolvedStream` type
