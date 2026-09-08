@@ -1,7 +1,11 @@
 import { proxyHeaders } from "../http.js";
 import { buildProxyUrl } from "./links.js";
 
-const CORS = { "Access-Control-Allow-Origin": "*" };
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+  "Access-Control-Allow-Headers": "*",
+};
 
 export type ProxyResult = {
   status: number;
@@ -20,7 +24,7 @@ async function fetchUpstream(url: string, referer: string) {
 }
 
 function isPlaylist(body: Buffer, targetUrl: string): boolean {
-  if (targetUrl.includes(".pdf") || targetUrl.includes(".zst") || targetUrl.includes(".ts")) {
+  if (targetUrl.includes(".pdf") || targetUrl.includes(".zst")) {
     return false;
   }
   const head = body.subarray(0, Math.min(body.length, 256)).toString("utf8");
@@ -52,36 +56,53 @@ export async function proxyStream(query: URLSearchParams, origin: string): Promi
   const target = query.get("url");
   const referer = query.get("referer");
   if (!target || !referer) {
-    return { status: 400, body: "url and referer required", type: "text/plain" };
+    return { status: 400, body: "url and referer required", type: "text/plain", headers: CORS };
   }
+
   let upstreamUrl: URL;
   try {
     upstreamUrl = new URL(target);
   } catch {
-    return { status: 400, body: "invalid url", type: "text/plain" };
+    return { status: 400, body: "invalid url", type: "text/plain", headers: CORS };
   }
+
   if (upstreamUrl.protocol !== "http:" && upstreamUrl.protocol !== "https:") {
-    return { status: 400, body: "unsupported protocol", type: "text/plain" };
+    return { status: 400, body: "unsupported protocol", type: "text/plain", headers: CORS };
   }
+
   try {
     const upstream = await fetchUpstream(target, referer);
+
+    if (upstream.status >= 400) {
+      return {
+        status: upstream.status,
+        body: upstream.body.toString("utf8") || `Upstream error ${upstream.status}`,
+        type: "text/plain",
+        headers: CORS,
+      };
+    }
+
+    // Playlist dosyaları
     if (isPlaylist(upstream.body, target)) {
       const text = upstream.body.toString("utf8");
       const body = text.startsWith("#EXTM3U")
         ? rewritePlaylist(text, upstreamUrl, referer, origin)
         : text;
       return {
-        status: upstream.status,
+        status: 200,
         body,
         type: "application/vnd.apple.mpegurl",
         headers: { ...CORS, "Cache-Control": "no-cache" },
       };
     }
+
+    // Video Segmentleri (.pdf, .zst veya .ts):
+    // Tarayıcı Hls.js demuxer'ının segmenti kabul etmesi için video/mp2t şarttır
     return {
-      status: upstream.status,
+      status: 200,
       body: upstream.body,
-      type: upstream.type || "application/octet-stream",
-      headers: { ...CORS, "Cache-Control": "no-cache" },
+      type: "video/mp2t",
+      headers: { ...CORS, "Cache-Control": "public, max-age=3600" },
     };
   } catch (err) {
     return {
