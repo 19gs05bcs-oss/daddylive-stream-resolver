@@ -2,7 +2,12 @@ export function buildProxyUrl(targetUrl: string, referer: string, origin: string
   const p = new URL("/api/proxy", origin);
   p.searchParams.set("url", targetUrl);
   p.searchParams.set("referer", referer);
-  return `${p.toString()}&ext=.ts`;
+  
+  // Eğer url m3u8 içermiyorsa (yani segment ise) ffplay için sahte uzantı ekle
+  if (!targetUrl.toLowerCase().includes(".m3u8")) {
+    return `${p.toString()}&ext=.ts`;
+  }
+  return p.toString();
 }
 
 export function buildVlcCommand(url: string, referer: string): string {
