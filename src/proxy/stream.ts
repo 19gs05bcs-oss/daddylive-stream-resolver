@@ -20,6 +20,9 @@ async function fetchUpstream(url: string, referer: string) {
 }
 
 function isPlaylist(body: Buffer, targetUrl: string): boolean {
+  if (targetUrl.includes(".pdf") || targetUrl.includes(".zst") || targetUrl.includes(".ts")) {
+    return false;
+  }
   const head = body.subarray(0, Math.min(body.length, 256)).toString("utf8");
   return head.includes("#EXTM3U") || targetUrl.includes(".m3u8");
 }
