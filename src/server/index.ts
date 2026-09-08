@@ -7,6 +7,7 @@ import { renderPage } from "../web/page.js";
 import { handleChannelList } from "./channels.js";
 import { handleResolveLive } from "./resolve.js";
 import { fetchSchedule } from "../channels/schedule.js";
+import { renderSchedulePage } from "../web/schedule-page.js";
 
 const PORT = Number(process.env.PORT ?? "3000");
 
@@ -52,12 +53,19 @@ createServer(async (req, res) => {
       return;
     }
 
-    // YENİ: Maç & Etkinlik Takvimi
+    // Mobil ve Harici API'ler İçin Saf JSON
     if (url.pathname === "/api/schedule") {
       const data = await fetchSchedule();
       send(res, 200, JSON.stringify(data), "application/json; charset=utf-8", {
         "Access-Control-Allow-Origin": "*",
       });
+      return;
+    }
+
+    // Tarayıcı İçin Şık HTML Görünümü
+    if (url.pathname === "/schedule") {
+      const data = await fetchSchedule();
+      send(res, 200, renderSchedulePage(data), "text/html; charset=utf-8");
       return;
     }
 
